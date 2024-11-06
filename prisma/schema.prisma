@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  parentId    Int?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  products    Product[]  @relation("ProductCategories")
+}
+
+model Attributes {
+  id       Int          @id @default(autoincrement())
+  name     String
+  parentId Int?
+  parent   Attributes?  @relation("Attributes", fields: [parentId], references: [id])
+  children Attributes[] @relation("Attributes")
+  variants Variant[]    @relation("VariantAttributes")
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  productCode String     @unique @default(cuid())
+  description String?
+  brand       String?
+  variants    Variant[]
+  createdAt   DateTime?  @default(now())
+  updatedAt   DateTime?  @updatedAt
+  categories  Category[] @relation("ProductCategories")
+}
+
+model Variant {
+  id           Int          @id @default(autoincrement())
+  sku          String       @unique
+  price        Float
+  quantity     Int
+  productId    Int
+  product      Product      @relation(fields: [productId], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  attributesId Int?
+  variants     Attributes[] @relation("VariantAttributes")
+}
