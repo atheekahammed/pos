@@ -25,9 +25,9 @@ export default function RootLayout({
         <AppRouterCacheProvider
           options={{ key: 'css' }}>
           <ThemeProvider theme={theme}>
-            <MailLayout>
-              {children}
-            </MailLayout>
+              <MailLayout>
+                {children}
+              </MailLayout>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

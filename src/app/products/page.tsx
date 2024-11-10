@@ -1,31 +1,14 @@
-'use client'
+'use server'
 
-import { Box, Button } from "@mui/material"
-import { createProduct, createProductWithCategoriesAndVariants, getProducts } from "../actions/productActions"
-import { IProduct } from "@/models/Product"
+import { getProducts } from "../actions/productActions"
+import Products from "./Products"
 
-const Products = async() => {
+
+const ProductList = async () => {
     const products = await getProducts()
-    console.log(products)
-    const createproduct = async () => {
-        const data: IProduct = {
-            name: 'TestProduct',
-            productCode: 'asdseef',
-            categories: [1, 2],
-        }
-        await createProduct(data)
-    }
-    const createvariantproduct = async () => {
-        await createProductWithCategoriesAndVariants()
-    }
-
-
     return (
-        <Box>
-            <Button onClick={createproduct}>create basic Product</Button>
-            <Button onClick={createvariantproduct}>create variant with Product</Button>
-        </Box>
+        <Products products={products} />
     )
 }
 
-export default Products
+export default ProductList

@@ -7,9 +7,9 @@ export interface IVariant {
     price: number;
     quantity: number;
     productId: number;
-    product: IProduct;
-    createdAt: Date;
-    updatedAt: Date;
-    attributesId?: number | null;
-    variants: IAttribute[];
+    product?: IProduct;
+    createdAt?: Date | null;
+    updatedAt?: Date | null;
+    attributes: IAttribute[] | number[];
+    default?: string
 }

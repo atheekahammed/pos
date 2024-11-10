@@ -1,12 +1,18 @@
 
-'use client'
+'use server'
+
+import { getAttributes } from "../actions/attributeAction"
+import Attributes from "./Attributes"
 
 
 
 
 
-const Attributes = () => {
-    return <>helolo</>
+const AttributesList = async () => {
+    const attributes = await getAttributes()
+    return <>
+        <Attributes attributes={attributes} />
+    </>
 }
 
-export default Attributes
+export default AttributesList

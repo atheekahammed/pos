@@ -6,6 +6,9 @@ const VARIANTS = "/variants";
 const CATEGORY = "/category";
 const ADDITIONAL_ATTRIBUTES = "/attributes";
 
+const STOCKS = '/stocks'
+const SALES = '/sales'
+
 
 const PATHS = {
 
@@ -13,6 +16,9 @@ const PATHS = {
   VARIANTS,
   CATEGORY,
   ADDITIONAL_ATTRIBUTES,
+
+  STOCKS,
+  SALES
 
 };
 

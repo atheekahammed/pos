@@ -6,6 +6,12 @@ import {
   FeaturedPlayList,
   GridView,
   Ballot,
+  Inventory,
+  StoreOutlined,
+  ShoppingBasketOutlined,
+  DomainVerification,
+  Store,
+  ShoppingBasket,
 } from "@mui/icons-material";
 
 export const menuItems: SidebarMenuItem[] = [
@@ -44,5 +50,33 @@ export const menuItems: SidebarMenuItem[] = [
         divider: false,
       },
     ],
+  },
+  {
+    id: "inventory",
+    caption: "Inventory",
+    divider: true,
+    icon: <Inventory />,
+    childrens: [
+      {
+        id: "stocks",
+        caption: "Stocks",
+        path: PATHS.STOCKS,
+        icon: <DomainVerification />,
+        divider: false,
+      },]
+  },
+  {
+    id: "sales",
+    caption: "Sales",
+    divider: true,
+    icon: <Store />,
+    childrens: [
+      {
+        id: "stocks",
+        caption: "Stocks",
+        path: PATHS.SALES,
+        icon: <ShoppingBasket />,
+        divider: false,
+      },]
   }
 ]

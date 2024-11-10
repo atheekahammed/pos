@@ -1,11 +1,14 @@
 'use client'
 
 
-import { Box, AppBar, Toolbar, IconButton, Typography, Button, Drawer, List, ListItemButton, ListItemText, ListItemIcon } from "@mui/material"
+import { Box, AppBar, Toolbar, IconButton, Typography, Button, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Collapse } from "@mui/material"
 import { ReactNode, useState } from "react"
-import { Menu } from '@mui/icons-material/'
+import { ExpandLess, ExpandMore, Menu } from '@mui/icons-material/'
 import { menuItems } from "./SideBarMenu"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { SidebarMenuItem } from "@/models/interfaces"
+import { store } from "@/app/services/store"
+import { Provider } from "react-redux"
 
 
 
@@ -18,53 +21,77 @@ export const MailLayout = (props: LayoutProps) => {
 
     const toggleDrawer = () => setOpen(!open)
     const route = useRouter()
+    const path = usePathname()
     const handleRoute = (path: string) => route.push(path)
 
-    return (
 
-        <Box >
-            <AppBar position="static">
-                <Toolbar>
-                    <IconButton
-                        size="large"
-                        edge="start"
-                        color="inherit"
-                        aria-label="menu"
-                        sx={{ mr: 2 }}
-                        onClick={toggleDrawer}
-                    >
-                        <Menu />
-                    </IconButton>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        POS
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Box p={2}>
-                {children}
-            </Box>
-            <Drawer open={open} onClose={toggleDrawer}>
-                <Box minWidth={'260px'}>
-                    <List>
-                        {menuItems.map(menu => (
-                            <Box key={menu.id}>
-                                <ListItemButton >
-                                    <ListItemIcon>{menu.icon}</ListItemIcon>
-                                    <ListItemText>{menu.caption}</ListItemText>
-                                </ListItemButton>
-                                {menu.childrens?.map(c => (
-                                    <Box key={c.id} pl={1}>
-                                        <ListItemButton onClick={() => handleRoute(c.path ?? "")}>
-                                            <ListItemIcon>{c.icon}</ListItemIcon>
-                                            <ListItemText>{c.caption}</ListItemText>
+    const [expand, setExpand] = useState("");
+    const handleClickMenu = (menu: SidebarMenuItem) => {
+        if (expand === menu.id) return setExpand('')
+        setExpand(menu.id)
+    }
+    const isparent = (menu: SidebarMenuItem) => expand === menu.id
+
+
+    return (
+        <Box>
+            <Provider store={store}>
+                <Box >
+                    <AppBar position="static">
+                        <Toolbar>
+                            <IconButton
+                                size="large"
+                                edge="start"
+                                color="inherit"
+                                aria-label="menu"
+                                sx={{ mr: 2 }}
+                                onClick={toggleDrawer}
+                            >
+                                <Menu />
+                            </IconButton>
+                            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                                POS
+                            </Typography>
+                            <Box>
+                                {path !== '/pos' &&
+                                    <Button href="/pos" sx={{ borderRadius: 2 }} variant="outlined" color="inherit">POS</Button>
+                                }
+                            </Box>
+                        </Toolbar>
+                    </AppBar>
+                    <Box p={2}>
+                        {children}
+                    </Box>
+                    <Drawer open={open} onClose={toggleDrawer}>
+                        <Box minWidth={'260px'}>
+                            <List>
+                                {menuItems.map(menu => (
+                                    <Box key={menu.id}>
+                                        <ListItemButton onClick={() => handleClickMenu(menu)}>
+                                            <ListItemIcon>{menu.icon}</ListItemIcon>
+                                            <ListItemText>{menu.caption}</ListItemText>
+                                            {isparent(menu) ? <ExpandLess /> : <ExpandMore />}
                                         </ListItemButton>
+                                        <Collapse
+                                            in={isparent(menu)}
+                                            unmountOnExit
+                                        >
+                                            {menu.childrens?.map(c => (
+                                                <Box key={c.id} pl={2}>
+                                                    <ListItemButton onClick={() => handleRoute(c.path ?? "")}>
+                                                        <ListItemIcon>{c.icon}</ListItemIcon>
+                                                        <ListItemText>{c.caption}</ListItemText>
+                                                    </ListItemButton>
+                                                </Box>
+                                            ))}
+                                        </Collapse>
                                     </Box>
                                 ))}
-                            </Box>
-                        ))}
-                    </List>
+                            </List>
+                        </Box>
+                    </Drawer>
                 </Box>
-            </Drawer>
+            </Provider>
         </Box>
     )
 }
