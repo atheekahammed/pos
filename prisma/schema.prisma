@@ -76,6 +76,8 @@ model Variant {
   updatedAt    DateTime?    @updatedAt
   attributes   Attributes[] @relation("VariantAttributes")
   stockBatches StockBatch[]
+
+  OrderItem OrderItem[]
 }
 
 model StockBatch {
@@ -90,7 +92,7 @@ model StockBatch {
 model Order {
   id         Int         @id @default(autoincrement())
   customerId Int?
-  createdAt  DateTime    @default(now())
+  createdAt  DateTime?    @default(now())
   updatedAt  DateTime?   @updatedAt
   status     OrderStatus @default(PENDING)
   discountId Int?
@@ -114,6 +116,8 @@ model OrderItem {
   variantId Int
   quantity  Int
   price     Float
+
+  variant   Variant  @relation(fields: [variantId], references: [id])
 
   orderId Int
   order   Order @relation(fields: [orderId], references: [id])

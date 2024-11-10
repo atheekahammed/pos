@@ -1,3 +1,4 @@
+'use server'
 import { prisma } from "@/lib/prisma";
 import { CnD } from "@/models/CnD";
 import { IOrder, IOrderItem } from "@/models/Order";
@@ -34,49 +35,48 @@ function calculatePayableAmount(items: { price: number; quantity: number }[], ch
 }
 
 
-
-
 export async function createOrder(input: IOrder) {
     const { customerId, discount, charge, items } = input;
 
-    // Validate input
     if (!items || items.length === 0) {
         throw new Error("Order must contain at least one item.");
     }
 
-    // Check for zero or negative item quantity
     if (items.some((item) => item.quantity <= 0)) {
         throw new Error("Order items must have a quantity greater than zero.");
     }
 
     try {
-        // Validate variants' availability
         const variantIds = items.map((item) => item.variantId);
         const variants = await prisma.variant.findMany({
-            where: {
-                id: { in: variantIds },
-            },
+            where: { id: { in: variantIds } },
         });
 
         if (variants.length !== variantIds.length) {
-            throw new Error("Some items reference non-existing variants.");
+            const missingVariantIds = variantIds.filter(
+                (id) => !variants.some((variant) => variant.id === id)
+            );
+            throw new Error(
+                `Some items reference non-existing variants: ${missingVariantIds.join(", ")}`
+            );
         }
 
         const insufficientStock = variants.filter((variant) =>
             items.some(
-                (item) => item.variantId === variant.id && variant.quantity === 0
+                (item) => item.variantId === variant.id && variant.quantity < item.quantity
             )
         );
 
         if (insufficientStock.length > 0) {
             throw new Error(
-                `Cannot create order. Some variants have no stock: ${insufficientStock
+                `Cannot create order. Insufficient stock for variants: ${insufficientStock
                     .map((v) => v.id)
-                    .join(", ")}.`
+                    .join(", ")}`
             );
         }
-        let discountId: number | null = null;
-        let chargeId: number | null = null;
+
+        let discountId = null;
+        let chargeId = null;
 
         if (discount) {
             const createdDiscount = await createDiscount(discount);
@@ -88,71 +88,26 @@ export async function createOrder(input: IOrder) {
             chargeId = createdCharge.id;
         }
 
-        const chargeAmount = charge ? charge.amount : 0;
-        const discountAmount = discount ? discount.amount : 0;
-        const paymentAmount = items.reduce((total, item) => total + (item.price * item.quantity), 0); // Sum of item prices
-        const payableAmount = calculatePayableAmount(items, chargeAmount, discountAmount);
-        const paidAmount = 0;
-
-        // const order = await prisma.order.create({
-        //     data: {
-        //         customerId,
-        //         paymentAmount,
-        //         paidAmount,
-        //         payableAmount,
-        //         status: 'PENDING',
-        //         paymentStatus: 'PENDING',
-        //         paymentMethod: 'INITIAL',
-        //         discountId,
-        //         chargeId,
-        //         items: {
-        //             create: items.map((item) => ({
-        //                 variantId: item.variantId,
-        //                 quantity: item.quantity,
-        //                 price: item.price,
-        //             })),
-        //         }
-
-        //     },
-        //     include: { items: true },
-        // });
-
-        // await Promise.all(
-        //     items.map(async (item) => {
-        //         const variant = await prisma.variant.findUnique({
-        //             where: { id: item.variantId },
-        //         });
-
-        //         if (!variant) {
-        //             throw new Error(`Variant with ID ${item.variantId} not found.`);
-        //         }
-
-        //         if (variant.quantity < item.quantity) {
-        //             throw new Error(
-        //                 `Insufficient stock for Variant with ID ${item.variantId}. Available: ${variant.quantity}, Requested: ${item.quantity}`
-        //             );
-        //         }
-
-        //         await prisma.variant.update({
-        //             where: { id: item.variantId },
-        //             data: {
-        //                 quantity: variant.quantity - item.quantity,
-        //             },
-        //         });
-        //     })
-        // );
-
+        const paymentAmount = items.reduce(
+            (total, item) => total + item.price * item.quantity,
+            0
+        );
+        const payableAmount = calculatePayableAmount(
+            items,
+            charge?.amount || 0,
+            discount?.amount || 0
+        );
 
         const [order] = await prisma.$transaction([
             prisma.order.create({
                 data: {
                     customerId,
                     paymentAmount,
-                    paidAmount,
+                    paidAmount: 0,
                     payableAmount,
-                    status: 'PENDING',
-                    paymentStatus: 'PENDING',
-                    paymentMethod: 'INITIAL',
+                    status: "PENDING",
+                    paymentStatus: "INITIAL",
+                    paymentMethod: "INITIAL",
                     discountId,
                     chargeId,
                     items: {
@@ -161,26 +116,21 @@ export async function createOrder(input: IOrder) {
                             quantity: item.quantity,
                             price: item.price,
                         })),
-                    }
-
+                    },
                 },
                 include: { items: true },
             }),
             ...items.map((item) =>
                 prisma.variant.update({
                     where: { id: item.variantId },
-                    data: {
-                        quantity: {
-                            decrement: item.quantity,
-                        },
-                    },
+                    data: { quantity: { decrement: item.quantity } },
                 })
             ),
         ]);
 
         return order;
-
     } catch (error) {
-        throw new Error("Failed to create order");
+        console.error("Error creating order:", error);
+        throw new Error(`Database error: `);
     }
 }

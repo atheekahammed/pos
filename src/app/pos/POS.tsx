@@ -7,6 +7,7 @@ import { addToCart, removeFromCart } from "@/cart/cartSlice"
 import { IOrderItem } from "@/models/Order"
 import { Delete } from "@mui/icons-material"
 import { currencyFormatter } from "@/lib/currencyFormatter"
+import { createOrder } from "../actions/cartActions"
 
 interface POSProps {
     variants: IVariant[]
@@ -37,6 +38,11 @@ const POS = (props: POSProps) => {
         dispatch(removeFromCart(id))
     }
 
+    const handleCheckout = async () => {
+        console.log(order)
+       if(order) await createOrder(order)
+    }
+
     return (
         <Box display={'flex'} gap={2}>
             <Box flexGrow={1}>
@@ -48,6 +54,7 @@ const POS = (props: POSProps) => {
                                     <Card onClick={() => { handleaddtoCart(v) }} sx={{}}>
                                         <Box minHeight={10} display={'flex'} justifyContent={'center'} alignItems={'center'}>
                                             {v.product?.name}
+                                            {v.quantity}
                                         </Box>
                                     </Card>
                                 </Grid2>
@@ -124,7 +131,7 @@ const POS = (props: POSProps) => {
                     ))}
                 </Box>
                 <Box>
-                    <Button variant={'contained'} fullWidth>checkout</Button>
+                    <Button onClick={handleCheckout} variant={'contained'} fullWidth>checkout</Button>
                 </Box>
             </Box>
         </Box>
