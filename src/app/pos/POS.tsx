@@ -1,11 +1,12 @@
 'use client'
 import { IVariant } from "@/models/Variant"
-import { Box, Button, Card, Drawer, Grid2, IconButton } from "@mui/material"
+import { Box, Button, Card, Drawer, Grid2, IconButton, Link, Typography } from "@mui/material"
 import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "../services/store"
 import { addToCart, removeFromCart } from "@/cart/cartSlice"
 import { IOrderItem } from "@/models/Order"
 import { Delete } from "@mui/icons-material"
+import { currencyFormatter } from "@/lib/currencyFormatter"
 
 interface POSProps {
     variants: IVariant[]
@@ -60,16 +61,65 @@ const POS = (props: POSProps) => {
                 <Box flexGrow={1}>
                     {order?.items.map((item, i) => (
                         <Box key={i}>
-                            <Card>
-                                <Box p={1}>
-                                    <Box>{item.variant?.product?.name}</Box>
-                                    <Box>{item?.variant?.sku}</Box>
-                                    <Box>{`${item.quantity} x ${item.price}`}</Box>
+                            <Card sx={{ my: 1 }}>
+                                <Box p={1} >
+                                    <Box
+                                        display={'flex'} justifyContent={'space-between'}
+                                    >
+                                        <Box>
+                                            <Box
+                                                component={Typography}
+                                                sx={{
+                                                    maxWidth: '210px',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {item.variant?.product?.name}
+                                            </Box>
+                                            <Box
+                                                sx={{
+                                                    maxWidth: '160px',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                }}
+                                                variant="body2"
+                                                component={Typography} >{item?.variant?.sku}</Box>
+                                            <Box
+                                                variant="body2"
+
+                                                component={Typography} >{`${item.quantity} x ${currencyFormatter(item.price)}`}</Box>
+                                        </Box>
+                                        <Box
+                                            display={'flex'}
+                                            justifyContent={'center'}
+                                            alignItems={'stretch'}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    height: '100%', /* Matches height of the container */
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    flexDirection: 'column'
+                                                }}
+                                            >
+                                                <Typography>
+                                                    {`${currencyFormatter(item.quantity * item.price)}`}
+                                                </Typography>
+                                                <Typography color="error" onClick={() => handleRemoveCart(item.variantId)} variant="caption" component={Link} underline="hover" sx={{ cursor: 'pointer' }}>
+                                                    Delete
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Box>
                                 </Box>
                             </Card>
 
-                            {`${item.price} - ${item.quantity} - ${item.variant?.sku} - ${item.price * item.quantity}`}
-                            <IconButton onClick={() => handleRemoveCart(item.variantId)}><Delete /></IconButton>
+
                         </Box>
                     ))}
                 </Box>
