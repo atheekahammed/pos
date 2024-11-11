@@ -72,8 +72,8 @@ export const menuItems: SidebarMenuItem[] = [
     icon: <Store />,
     childrens: [
       {
-        id: "stocks",
-        caption: "Stocks",
+        id: "Sales",
+        caption: "Sales",
         path: PATHS.SALES,
         icon: <ShoppingBasket />,
         divider: false,

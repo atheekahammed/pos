@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CnD } from "@/models/CnD";
 import { IOrder, IOrderItem } from "@/models/Order";
 import { PaymentMethod, PaymentStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 
 async function createDiscount(discount: CnD) {
@@ -35,7 +36,7 @@ function calculatePayableAmount(items: { price: number; quantity: number }[], ch
 }
 
 
-export async function createOrder(input: IOrder) {
+export async function createOrder(input: IOrder):Promise<IOrder> {
     const { customerId, discount, charge, items } = input;
 
     if (!items || items.length === 0) {
@@ -127,6 +128,7 @@ export async function createOrder(input: IOrder) {
                 })
             ),
         ]);
+        revalidatePath("/pos");
 
         return order;
     } catch (error) {

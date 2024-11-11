@@ -1,13 +1,19 @@
 'use client'
 import { IVariant } from "@/models/Variant"
-import { Box, Button, Card, Drawer, Grid2, IconButton, Link, Typography } from "@mui/material"
-import { useState } from "react"
+import { Box, Button, Card, Drawer, Grid2, IconButton, Link, TextField, Typography } from "@mui/material"
+import { SetStateAction, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../services/store"
-import { addToCart, removeFromCart } from "@/cart/cartSlice"
-import { IOrderItem } from "@/models/Order"
+import { addToCart, clearCart, removeFromCart } from "@/cart/cartSlice"
+import { IOrder, IOrderItem } from "@/models/Order"
 import { Delete } from "@mui/icons-material"
 import { currencyFormatter } from "@/lib/currencyFormatter"
 import { createOrder } from "../actions/cartActions"
+import { Dialog } from "@/components/Dialog"
+import { saleUpdateAction } from "../actions/saleAction"
+import { PaymentMethod } from "@prisma/client"
+import PaymentScreen from "./PaymentScreen"
+import CND from "./CND"
+import { CnD } from "@/models/CnD"
 
 interface POSProps {
     variants: IVariant[]
@@ -37,10 +43,44 @@ const POS = (props: POSProps) => {
     const handleRemoveCart = (id: number) => {
         dispatch(removeFromCart(id))
     }
+    const [orderRespose, setorderRespose] = useState<IOrder | null>(null)
+    const [openPayment, setopenPayment] = useState(false)
+    const [cnd, setcnd] = useState(false)
+
+    const [discount, setdiscount] = useState<CnD>()
+    const [charge, setcharge] = useState<CnD>()
+
+
+
+
 
     const handleCheckout = async () => {
-        console.log(order)
-       if(order) await createOrder(order)
+        if (order) {
+            const orderdata = await createOrder(order)
+            dispatch(clearCart())
+            if (orderdata) {
+                setorderRespose(orderdata)
+                openPaymentDialog()
+            }
+        }
+    }
+    const openPaymentDialog = () => setopenPayment(true)
+    const closePaymentDialog = () => setopenPayment(false)
+
+    const opencnd = () => setcnd(true)
+    const closecnd = () => setcnd(false)
+
+
+    const handleSale = async () => {
+        const values = {
+            saleId: 2,
+            paidAmount: 150,
+            paymentMethod: 'CREDIT_CARD' as PaymentMethod,
+            paymentAmount: 200,
+
+        }
+        await saleUpdateAction(values.saleId, values.paidAmount, values.paymentMethod, values.paymentAmount)
+        setorderRespose(null)
     }
 
     return (
@@ -130,10 +170,55 @@ const POS = (props: POSProps) => {
                         </Box>
                     ))}
                 </Box>
-                <Box>
-                    <Button onClick={handleCheckout} variant={'contained'} fullWidth>checkout</Button>
+                <Box >
+                    <Grid2 py={2} container spacing={2}>
+                        <Button
+                            disabled={(!order?.items || order.items.length === 0)}
+
+                            onClick={opencnd} fullWidth>Discount  |  Charge</Button>
+
+                    </Grid2>
+                    <Button
+                        disabled={(!order?.items || order.items.length === 0)}
+                        size="large"
+                        onClick={handleCheckout} variant={'contained'} fullWidth>checkout</Button>
                 </Box>
             </Box>
+            {orderRespose &&
+                <Dialog
+                    open={openPayment}
+                    onClose={closePaymentDialog}
+                    content={
+                        <PaymentScreen
+                            charge={charge}
+                            discount={discount}
+                            orderRespose={orderRespose}
+                            closePaymentDialog={closePaymentDialog}
+
+                        />
+                    }
+                    dialogTitle="Payment "
+                    fullWidth={true}
+                    maxWidth="sm"
+
+                />
+            }
+
+            <Dialog
+                open={cnd}
+                onClose={closecnd}
+                content={
+                    <CND
+                        setdiscount={setdiscount}
+                        setcharge={setcharge}
+                        closecnd={closecnd}
+                    />
+                }
+                dialogTitle="DISCOUNT | CHARGE "
+                fullWidth={true}
+                maxWidth="sm"
+            />
+
         </Box>
     )
 }

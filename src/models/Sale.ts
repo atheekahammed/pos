@@ -1,19 +1,14 @@
 import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
-import { CnD } from "./CnD";
-import { Customer } from "./Customer";
-import { IVariant } from "./Variant";
+import { CnD } from "./CnD"
+import { Customer } from "./Customer"
+import { IVariant } from "./Variant"
 
 
 
-export interface IOrderItem {
-    id: number;
-    variantId: number;
-    quantity: number;
-    price: number
-    variant?: IVariant
-}
 
-export interface IOrder {
+
+
+export interface Sale {
     id: number;
     customerId?: number | null;
     createdAt?: Date | null;
@@ -21,7 +16,7 @@ export interface IOrder {
 
     status: OrderStatus;
 
-    items: IOrderItem[];
+    items: Item[];
     discountId?: number | null;
     chargeId?: number | null;
     charge?: CnD | null;
@@ -36,5 +31,14 @@ export interface IOrder {
 
     paymentStatus?: PaymentStatus;
     paymentMethod?: PaymentMethod;
-
 }
+
+export interface Item {
+    id: number
+    variantId: number
+    quantity: number
+    price: number
+    orderId: number
+    variant?: IVariant
+}
+
