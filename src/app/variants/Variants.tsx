@@ -39,8 +39,10 @@ const Variants = (props: VariantProps) => {
             label: "createdAt",
             options: {
                 customBodyRenderLite(dataIndex, rowIndex) {
-                    // const data = variants[dataIndex].createdAt?.getDate()
-                    return <></>
+                    const data = variants[dataIndex].createdAt
+                        ? new Date(variants[dataIndex].createdAt).toISOString()
+                        : '';
+                    return <>{data}</>
                 },
             }
         },
@@ -53,7 +55,7 @@ const Variants = (props: VariantProps) => {
                     return <>
                         {row.map((r, i) => (
                             <Box key={i}>
-                                <Chip color="secondary" sx={{borderRadius:2}} size="small" label={r.name} />
+                                <Chip color="secondary" sx={{ borderRadius: 2 }} size="small" label={r.name} />
                             </Box>
                         ))}
                     </>
@@ -76,7 +78,7 @@ const Variants = (props: VariantProps) => {
             options={{
                 enableNestedDataAccess: '.',
                 serverSide: false,
-                pagination: false,
+                pagination: false,            
             }}
         />
     </>
