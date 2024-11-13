@@ -70,6 +70,7 @@ export async function createStockBatch(stock: IStockBatch): Promise<IStockBatch[
   
         // Revalidate the cache
         revalidatePath("/stocks");
+        revalidatePath("/variants");
   
         // Fetch the created batches from the database
         const createdBatches = await prisma.stockBatch.findMany({
